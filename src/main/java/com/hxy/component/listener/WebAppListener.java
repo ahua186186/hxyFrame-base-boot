@@ -1,8 +1,9 @@
 package com.hxy.component.listener;
 
+import com.alibaba.fastjson.JSON;
+import com.hxy.modules.common.utils.RedisClusterUtil;
 import com.hxy.modules.common.cache.CodeCache;
 import com.hxy.modules.common.common.Constant;
-import com.hxy.modules.common.utils.RedisUtil;
 import com.hxy.modules.common.utils.StringUtils;
 import com.hxy.modules.sys.dao.CodeDao;
 import com.hxy.modules.sys.entity.CodeEntity;
@@ -40,7 +41,7 @@ public class WebAppListener implements ApplicationListener<ContextRefreshedEvent
 	private CodeDao codeDao;
 	
 	@Autowired
-	private RedisUtil redisUtils;
+	private RedisClusterUtil redisClusterUtil;
 
 	/**
 	 * 实现EnvironmentAware接口，初始化系统数据。
@@ -88,7 +89,9 @@ public class WebAppListener implements ApplicationListener<ContextRefreshedEvent
         }
         CodeCache.put(Constant.CODE_CACHE,allMap);
         try {
-            redisUtils.setObject(Constant.CODE_CACHE,allMap);
+            redisClusterUtil.setObject(Constant.CODE_CACHE,allMap);
+            Map<String,Map<String,Object>> testMap = (Map<String,Map<String,Object>>)redisClusterUtil.getObject(Constant.CODE_CACHE);
+            System.out.println(JSON.toJSONString(testMap));
         } catch (Exception e) {
             e.printStackTrace();
         }

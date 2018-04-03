@@ -1,10 +1,10 @@
 package com.hxy.modules.sys.service.impl;
 
 
+import com.hxy.modules.common.utils.RedisClusterUtil;
 import com.hxy.modules.common.utils.UserUtils;
 import com.hxy.modules.common.common.Constant;
 import com.hxy.modules.common.exception.MyException;
-import com.hxy.modules.common.utils.RedisUtil;
 import com.hxy.modules.common.utils.Utils;
 import com.hxy.modules.sys.dao.CodeDao;
 import com.hxy.modules.sys.entity.CodeEntity;
@@ -27,7 +27,7 @@ public class CodeServiceImpl implements CodeService {
     private static final Logger logger = LoggerFactory.getLogger(CodeServiceImpl.class);
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisClusterUtil redisClusterUtil;
 
 	@Autowired
 	private CodeDao codeDao;
@@ -89,7 +89,7 @@ public class CodeServiceImpl implements CodeService {
         //更新缓存
         CodeEntity parentCode = codeDao.queryObject(code.getParentId());
 //        Map<String,Map<String,Object>> allMap = CodeCache.get(Constant.CODE_CACHE);
-        Map<String,Map<String,Object>> allMap = (Map<String, Map<String, Object>>) redisUtil.getObject(Constant.CODE_CACHE);
+        Map<String,Map<String,Object>> allMap = (Map<String, Map<String, Object>>) redisClusterUtil.getObject(Constant.CODE_CACHE);
         Map<String,Object> parentMap = allMap.get(parentCode.getMark());
         //第一步取出父字典，添加新子字典
         List<Map<String, Object>> childList=(List<Map<String, Object>>) parentMap.get("childList");
@@ -120,7 +120,7 @@ public class CodeServiceImpl implements CodeService {
         parentMap.put("childList",childList);
         allMap.put(parentCode.getMark(),parentMap);
 //        CodeCache.put(Constant.CODE_CACHE,allMap);
-        redisUtil.setObject(Constant.CODE_CACHE,allMap);
+        redisClusterUtil.setObject(Constant.CODE_CACHE,allMap);
     }
 
 
@@ -134,7 +134,7 @@ public class CodeServiceImpl implements CodeService {
 //        Map<String,Map<String,Object>> allMap = CodeCache.get(Constant.CODE_CACHE);
         Map<String,Map<String,Object>> allMap = null;
         try {
-            allMap = (Map<String, Map<String, Object>>) redisUtil.getObject(Constant.CODE_CACHE);
+            allMap = (Map<String, Map<String, Object>>) redisClusterUtil.getObject(Constant.CODE_CACHE);
             logger.info("读取数据字典缓存成功!");
         } catch (Exception e) {
             logger.warn("读取数据字典缓存失败!");
@@ -161,7 +161,7 @@ public class CodeServiceImpl implements CodeService {
         }
 //        CodeCache.put(Constant.CODE_CACHE,allMap);
         try {
-            redisUtil.setObject(Constant.CODE_CACHE,allMap);
+            redisClusterUtil.setObject(Constant.CODE_CACHE,allMap);
             logger.info("更新数据字典缓存成功!");
         } catch (Exception e) {
             logger.warn("更新数据字典缓存失败!");

@@ -1,7 +1,7 @@
 package com.hxy.component.redis;
 
 
-import com.hxy.modules.common.utils.RedisUtil;
+import com.hxy.modules.common.utils.RedisClusterUtil;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.session.mgt.ValidatingSession;
@@ -39,7 +39,7 @@ public class CachingShiroSessionDao extends CachingSessionDAO {
     }
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisClusterUtil redisClusterUtil;
 
     /**
      * 重写CachingSessionDAO中readSession方法，如果Session中没有登陆信息就调用doReadSession方法从Redis中重读
@@ -71,7 +71,7 @@ public class CachingShiroSessionDao extends CachingSessionDAO {
         Session session = null;
         try {
             String key = prefix + sessionId;
-            session = (Session) redisUtil.getObject(key);
+            session = (Session) redisClusterUtil.getObject(key);
             logger.info("sessionId {} name {} 被读取", sessionId, session.getClass().getName());
         } catch (Exception e) {
             logger.warn("读取Session失败", e);
@@ -92,7 +92,7 @@ public class CachingShiroSessionDao extends CachingSessionDAO {
         try {
             // session由Redis缓存失效决定，这里只是简单标识
             session.setTimeout(seconds);
-            redisUtil.setObject(prefix + sessionId,session,seconds);
+            redisClusterUtil.setObject(prefix + sessionId,session,seconds);
             logger.info("sessionId {} name {} 被创建", sessionId, session.getClass().getName());
         } catch (Exception e) {
             logger.warn("创建Session失败", e);
@@ -115,7 +115,7 @@ public class CachingShiroSessionDao extends CachingSessionDAO {
         }
         try {
             try {
-                redisUtil.setObject(prefix+session.getId(),session,seconds);
+                redisClusterUtil.setObject(prefix+session.getId(),session,seconds);
                 logger.info("sessionId {} name {} 被更新", session.getId(), session.getClass().getName());
             } catch (Exception e) {
                 logger.info("sessionId {} name {} 更新异常", session.getId(), session.getClass().getName());
@@ -132,7 +132,7 @@ public class CachingShiroSessionDao extends CachingSessionDAO {
     @Override
     protected void doDelete(Session session) {
         try {
-            redisUtil.del(prefix + session.getId());
+            redisClusterUtil.deleteString(prefix + session.getId());
             logger.debug("Session {} 被删除", session.getId());
         } catch (Exception e) {
             logger.warn("删除Session失败", e);

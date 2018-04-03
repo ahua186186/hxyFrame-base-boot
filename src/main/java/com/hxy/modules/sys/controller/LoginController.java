@@ -2,12 +2,13 @@ package com.hxy.modules.sys.controller;
 
 import com.google.code.kaptcha.Constants;
 import com.google.code.kaptcha.Producer;
+import com.hxy.component.shiro.KickoutSessionControlFilter;
 import com.hxy.modules.common.annotation.SysLog;
 import com.hxy.modules.common.controller.BaseController;
-import com.hxy.modules.common.utils.Result;
-import com.hxy.modules.common.utils.ShiroUtils;
-import com.hxy.modules.common.utils.UserUtils;
+import com.hxy.modules.common.utils.*;
+import com.hxy.modules.sys.entity.UserEntity;
 import org.apache.shiro.authc.*;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 /**
  * 类的功能描述.
@@ -31,9 +35,14 @@ import java.io.IOException;
  */
 @Controller
 public class LoginController extends BaseController {
-
+    @Autowired
+    private RedisBean redisBean;
     @Autowired
     private Producer captchaProducer;
+    @Autowired
+    private RedisUtil2 redisUtil2;
+    @Autowired
+    private RedisClusterUtil redisClusterUtil;
 
     @RequestMapping("/login/captcha")
     public void captcha(HttpServletRequest request , HttpServletResponse response)throws ServletException, IOException {
@@ -55,6 +64,9 @@ public class LoginController extends BaseController {
         // store the text in the session
         request.getSession().setAttribute(Constants.KAPTCHA_SESSION_KEY, capText);
 
+        //保存到shiro session
+        ShiroUtils.setSessionAttribute(Constants.KAPTCHA_SESSION_KEY, capText);
+
         // create the image with the text
         BufferedImage bi = captchaProducer.createImage(capText);
 
@@ -75,16 +87,27 @@ public class LoginController extends BaseController {
      */
     @ResponseBody
     @RequestMapping(value = "/login/login", method = RequestMethod.POST)
-    public Result login(String username, String password, String captcha, boolean isRememberMe)throws IOException {
-      /*  String kaptcha = ShiroUtils.getKaptcha(Constants.KAPTCHA_SESSION_KEY);
+    public Result login(String username, String password, String captcha, final boolean isRememberMe)throws IOException {
+        //redisBean.setStringValue("test111","1");
+       // System.out.println("test redisBean:" + redisBean.getStringValue("test111"));
+        String kaptcha = ShiroUtils.getKaptcha(Constants.KAPTCHA_SESSION_KEY);
         if(!captcha.equalsIgnoreCase(kaptcha)){
             return Result.error("验证码不正确");
-        }*/
+        }
         try{
             Subject subject = ShiroUtils.getSubject();
             UsernamePasswordToken token = new UsernamePasswordToken(username, password);
             token.setRememberMe(isRememberMe);
             subject.login(token);
+
+            Deque<Serializable> deque = (Deque<Serializable>)redisClusterUtil.getObject(KickoutSessionControlFilter.kickOutCache);
+            if(deque == null) {
+                deque = new ArrayDeque<Serializable>();
+            }
+            Session session = subject.getSession();
+            Serializable sessionId = session.getId();
+            deque.push(sessionId);
+            redisClusterUtil.setObject(KickoutSessionControlFilter.kickOutCache+username,deque);
         }catch (UnknownAccountException e) {
             return Result.error(e.getMessage());
         }catch (IncorrectCredentialsException e) {

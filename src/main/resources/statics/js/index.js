@@ -98,6 +98,7 @@ var vm = new Vue({
 function routerList(router, menuList){
 	for(var key in menuList){
 		var menu = menuList[key];
+		alert(menu.url);
 		if(menu.type == 0){
 			routerList(router, menu.list);
 		}else if(menu.type == 1){
@@ -110,7 +111,7 @@ function routerList(router, menuList){
 			    //导航菜单展开
 			    $(".treeview-menu li").removeClass("active");
 			    $("a[href='"+url+"']").parents("li").addClass("active");
-			    
+
 			    vm.navTitle = $("a[href='"+url+"']").text();
 			});
 		}

@@ -19,15 +19,24 @@ public class VelocityConfig {
 
     @Bean
     public VelocityViewResolver velocityViewResolver(){
+        /**
+         * spring.velocity.suffix=.html
+         spring.velocity.cache=false
+         */
         VelocityViewResolver viewResolver = new VelocityViewResolver();
+        //<!--解决中文乱码-->
         viewResolver.setContentType("text/html;charset=UTF-8");
         viewResolver.setViewNames("*.html");
         viewResolver.setSuffix("");
+        viewResolver.setCache(false);
         viewResolver.setDateToolAttribute("date");
         viewResolver.setNumberToolAttribute("number");
-        viewResolver.setToolboxConfigLocation("WEB-INF/velocity-toolbox.xml");
+        //<!-- 配置 velocity工具类 MAIN 方法启动模式没法玩，这个坑没必要去填，改成从ModelAndView传入对象VelocityShiro-->
+        //viewResolver.setToolboxConfigLocation("WEB-INF/velocity-toolbox.xml");
         viewResolver.setRequestContextAttribute("rc");
-        viewResolver.setOrder(1);
+        //<!-- Spring4 支持  velocity-tools2.0  MAIN 方法启动模式没法玩，这个坑没必要去填 改成从ModelAndView传入对象VelocityShiro-->
+        viewResolver.setViewClass(VelocityToolbox2View.class);
+        viewResolver.setOrder(Integer.MIN_VALUE);
         return viewResolver;
     }
 

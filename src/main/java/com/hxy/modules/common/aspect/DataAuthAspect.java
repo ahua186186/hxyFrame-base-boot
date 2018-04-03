@@ -21,13 +21,13 @@ import java.util.Map;
  * @auther hxy
  * @date 2017-11-16 16:04:03
  */
-@Aspect
-@Component
-public class DataAuthAspect {
-    @Pointcut("@annotation(com.hxy.modules.common.annotation.DataAuth)")
-    public void dataAuthPointcut(){
+    @Aspect
+    @Component
+    public class DataAuthAspect {
+        @Pointcut("@annotation(com.hxy.modules.common.annotation.DataAuth)")
+        public void dataAuthPointcut(){
 
-    }
+        }
 
     @Before("dataAuthPointcut()")
     public void dataAuth(JoinPoint joinPoint) throws Throwable{

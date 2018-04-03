@@ -23,17 +23,38 @@ spring:
         date-format: yyyy-MM-dd HH:mm:ss
     resources: # 静态资源的路径
         static-locations: classpath:/statics/,classpath:/views/
+
+    #redis 集群配置
     redis:
-        database: 2
-        hostName: 127.0.0.1
-        port: 6379
-        password:       # 密码（默认为空）
-        timeout: 6000  # 连接超时时长（毫秒）
-        pool:
-            max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
-            max-wait: -1      # 连接池最大阻塞等待时间（使用负值表示没有限制）
-            max-idle: 10      # 连接池中的最大空闲连接
-            min-idle: 5       # 连接池中的最小空闲连接
+      database: 0
+      timeout: 6000  # 连接超时时长（毫秒）
+      pool:
+        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+        max-wait: -1      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 10      # 连接池中的最大空闲连接
+        min-idle: 5       # 连接池中的最小空闲连接
+      cluster:
+        nodes: 10.91.19.101:6621,10.91.19.101:6622,10.91.19.101:6623
+     #redis 哨兵模式配置
+      #sentinel:
+      #  master:
+      #  nodes:
+      #password:
+
+
+  #redis 单机配置
+    #redis:
+     #   database: 0
+     #   hostName: 10.91.19.101
+     #   port: 6622
+       # password:       # 密码（默认为空）
+     #   timeout: 6000  # 连接超时时长（毫秒）
+     #   pool:
+     #       max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+     #       max-wait: -1      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+     #       max-idle: 10      # 连接池中的最大空闲连接
+     #       min-idle: 5       # 连接池中的最小空闲连接
+
 
 # Mybatis配置
 mybatis:
@@ -47,4 +68,6 @@ jwt:
     # token有效时长，7天，单位秒
     expire: 604800
     header: token
+debug: true
+
 
